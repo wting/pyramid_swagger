@@ -3,12 +3,7 @@ The core model we use to represent the entire ingested swagger schema for this
 service.
 """
 import re
-
-
-class PathNotMatchedError(Exception):
-    """Raised when a SwaggerSchema object is given a request it cannot match
-    against its stored schema."""
-    pass
+from pyramid.httpexceptions import HTTPNotFound
 
 
 class SwaggerSchema(object):
@@ -53,7 +48,7 @@ class SwaggerSchema(object):
                 ):
                     return (schema_map, resolver)
 
-        raise PathNotMatchedError(
+        raise HTTPNotFound(
             'Could not find the relevant path ({0}) '
             'in the Swagger schema. Perhaps you forgot '
             'to add it?'.format(request.path)

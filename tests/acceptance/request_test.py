@@ -16,11 +16,11 @@ def test_app(**overrides):
     return TestApp(main({}, **settings))
 
 
-def test_400_if_required_query_args_absent(test_app):
+def test_422_if_required_query_args_absent(test_app):
     assert test_app.get(
         '/sample/path_arg1/resource',
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
 def test_200_if_optional_query_args_absent(test_app):
@@ -48,27 +48,27 @@ def test_200_if_request_arg_types_are_not_strings(test_app):
     ).status_code == 200
 
 
-def test_400_if_path_not_in_swagger(test_app):
+def test_404_if_path_not_in_swagger(test_app):
     assert test_app.get(
         '/does_not_exist',
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 404
 
 
-def test_400_if_request_arg_is_wrong_type_but_not_castable(test_app):
+def test_422_if_request_arg_is_wrong_type_but_not_castable(test_app):
     assert test_app.get(
         '/get_with_non_string_query_args',
         params={'float_arg': 'foobar'},
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
-def test_400_if_path_arg_is_wrong_type(test_app):
+def test_422_if_path_arg_is_wrong_type(test_app):
     assert test_app.get(
         '/sample/invalid_arg/resource',
         params={'required_arg': 'test'},
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
 def test_200_if_path_arg_is_wrong_type_but_castable(test_app):
@@ -77,12 +77,12 @@ def test_200_if_path_arg_is_wrong_type_but_castable(test_app):
     ).status_code == 200
 
 
-def test_400_if_required_body_is_missing(test_app):
+def test_422_if_required_body_is_missing(test_app):
     assert test_app.post_json(
         '/sample',
         {},
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
 def test_200_on_json_body_without_contenttype_header(test_app):
@@ -94,12 +94,12 @@ def test_200_on_json_body_without_contenttype_header(test_app):
     ).status_code == 200
 
 
-def test_400_if_body_has_missing_required_arg(test_app):
+def test_422_if_body_has_missing_required_arg(test_app):
     assert test_app.post_json(
         '/sample',
         {'bar': 'test'},
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
 def test_200_if_body_has_missing_optional_arg(test_app):
@@ -123,19 +123,19 @@ def test_200_if_required_body_is_primitives(test_app):
     ).status_code == 200
 
 
-def test_400_if_extra_body_args(test_app):
+def test_422_if_extra_body_args(test_app):
     assert test_app.post_json(
         '/sample_post',
         {'foo': 'test', 'bar': 'test', 'made_up_argument': 1},
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
-def test_400_if_extra_query_args(test_app):
+def test_422_if_extra_query_args(test_app):
     assert test_app.get(
         '/sample/path_arg1/resource?made_up_argument=1',
         expect_errors=True,
-    ).status_code == 400
+    ).status_code == 422
 
 
 def test_200_skip_validation_with_wrong_path():

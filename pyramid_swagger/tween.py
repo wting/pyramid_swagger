@@ -7,9 +7,9 @@ import re
 import jsonschema.exceptions
 import simplejson
 from jsonschema.validators import Draft3Validator, Draft4Validator
-from pyramid.httpexceptions import HTTPClientError, HTTPInternalServerError
+from pyramid.httpexceptions import HTTPInternalServerError, \
+    HTTPUnprocessableEntity
 from .ingest import compile_swagger_schema
-from .model import PathNotMatchedError
 
 
 EXTENDED_TYPES = {
@@ -44,7 +44,7 @@ def validation_tween_factory(handler, registry):
         if should_skip_validation(skip_validation, request.path):
             return handler(request)
 
-        schema_data, resolver = find_schema_for_request(schema, request)
+        schema_data, resolver = schema.schema_and_resolver_for_request(request)
 
         _validate_request(
             route_mapper,
@@ -106,15 +106,8 @@ def should_skip_validation(skip_validation_res, path):
     return any(r.match(path) for r in skip_validation_res)
 
 
-def find_schema_for_request(schema, request):
-    try:
-        return schema.schema_and_resolver_for_request(request)
-    except PathNotMatchedError as exc:
-        raise HTTPClientError(str(exc))
-
-
 def _validate_request(route_mapper, request, schema_data, resolver):
-    """ Validates a request and raises an HTTPClientError on failure.
+    """ Validates a request and raises an HTTPUnprocessableEntity on failure.
 
     :param request: the request object to validate
     :type request: Pyramid request object passed into a view
@@ -133,8 +126,8 @@ def _validate_request(route_mapper, request, schema_data, resolver):
         )
     except jsonschema.exceptions.ValidationError as exc:
         # This will alter our stack trace slightly, but Pyramid knows how
-        # to render it. And the real value is in the message anyway.
-        raise HTTPClientError(str(exc))
+        # to render it and the real value is in the message anyway.
+        raise HTTPUnprocessableEntity(str(exc))
 
 
 def _validate_response(response, schema_data, schema_resolver):

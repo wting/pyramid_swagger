@@ -4,8 +4,8 @@ Unit tests for the SwaggerSchema class.
 import mock
 import pytest
 
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid_swagger.ingest import compile_swagger_schema
-from pyramid_swagger.model import PathNotMatchedError
 from pyramid_swagger.model import partial_path_match
 
 
@@ -53,7 +53,7 @@ def test_swagger_schema_for_request_not_found(schema):
         path="/does_not_exist",
         method="GET"
     )
-    with pytest.raises(PathNotMatchedError) as excinfo:
+    with pytest.raises(HTTPNotFound) as excinfo:
         schema.schema_and_resolver_for_request(mock_request)
     assert '/does_not_exist' in str(excinfo)
     assert 'Could not find ' in str(excinfo)
